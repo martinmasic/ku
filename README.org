@@ -9,7 +9,7 @@ My attempt at a general sudoku program, written in Rust.
 - [X] nix flake
 - [X] direnv
 - [X] .gitingore
-- [ ] rust project structure
+- [X] rust project structure
 - [ ] rewrite of current state of C++ project in Rust
 - [ ] refactor
 - [ ] CLI argument parsing
