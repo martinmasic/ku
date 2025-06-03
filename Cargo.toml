@@ -3,3 +3,7 @@ name = "ku"
 version = "0.0.1"
 authors = [ "Martin Mašić" ]
 edition = "2024"
+
+[dependencies]
+rand = "0.9.1"
+rand_chacha = "0.9"
