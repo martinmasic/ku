@@ -10,6 +10,6 @@ My attempt at a general sudoku program, written in Rust.
 - [X] direnv
 - [X] .gitingore
 - [X] rust project structure
-- [ ] rewrite of current state of C++ project in Rust
+- [X] rewrite of current state of C++ project in Rust
 - [ ] refactor
 - [ ] CLI argument parsing
