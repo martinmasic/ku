@@ -2,19 +2,22 @@ mod game;
 mod generator;
 mod testing;
 
-// use crate::game::Board;
 use crate::generator::{*};
+use rand::SeedableRng;
+use rand_chacha::ChaCha8Rng;
+use std::time::{SystemTime, UNIX_EPOCH};
 
 fn main() {
-    // use rand::seq::SliceRandom;
-    use rand::SeedableRng;
-    use rand_chacha::ChaCha8Rng;
 
-    let seed: u64 = 42;
-    let mut rng = ChaCha8Rng::seed_from_u64(seed);
+    let now: u64 = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .expect("Time went backwards")
+        .as_secs();
+
+    let mut rng = ChaCha8Rng::seed_from_u64(now);
 
 
-    let board = generate_valid_board(&mut rng, 20);
+    let board = generate_valid_board(&mut rng, 52);
     testing::print_board(&board);
 
 }

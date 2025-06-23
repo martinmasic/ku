@@ -2,8 +2,6 @@ use crate::game::{*};
 use crate::testing;
 
 use rand::seq::SliceRandom;
-// use rand::rngs::ThreadRng;
-// use rand::Rng;
 use std::vec;
 use std::ops::Index;
 use std::ops::IndexMut;
@@ -194,44 +192,43 @@ impl<'a> CandidatesBoard<'a> {
 
 fn solutions_count(board: &Board) -> u64 {
     let mut solutions_count: u64 = 0;
-    let mut cand_board = CandidatesBoard::new(&board);
+    let mut cands_board = CandidatesBoard::new(&board);
     'outer: loop {
-        if cand_board.curr_cand_valid() {
-            if cand_board.is_last() {
+        if cands_board.curr_cand_valid() {
+            if cands_board.is_last() {
                 solutions_count += 1;
-                // if solutions_count > 1 { std::process::exit(0); } // TODO
-                if cand_board.is_first() { return solutions_count; } // ??
+                if cands_board.is_first() { return solutions_count; } // ??
 
                 'inner: loop {
-                    cand_board.reset_curr_cands();
-                    cand_board.dec();
-                    cand_board.pop_candidate();
+                    cands_board.reset_curr_cands();
+                    cands_board.dec();
+                    cands_board.pop_candidate();
 
-                    if cand_board.curr().as_ref().unwrap().is_empty() {
-                        if cand_board.is_first() {
+                    if cands_board.curr().as_ref().unwrap().is_empty() {
+                        if cands_board.is_first() {
                             return solutions_count;
                         } else { continue 'inner; }
                     } else { continue 'outer; }
                 }
             } else {
-                cand_board.inc();
+                cands_board.inc();
                 continue;
             }
         } else {
             'inner: loop {
-                if cand_board.is_first()
-                    && cand_board.curr().as_ref().unwrap().is_empty() {
+                if cands_board.is_first()
+                    && cands_board.curr().as_ref().unwrap().is_empty() {
                         return solutions_count;
                     }
 
-                cand_board.pop_candidate();
-                if cand_board.curr().as_ref().unwrap().is_empty() {
-                    if cand_board.is_first() {
+                cands_board.pop_candidate();
+                if cands_board.curr().as_ref().unwrap().is_empty() {
+                    if cands_board.is_first() {
                         return solutions_count;
                     }
-                    cand_board.reset_curr_cands();
-                    cand_board.dec();
-                    cand_board.pop_candidate();
+                    cands_board.reset_curr_cands();
+                    cands_board.dec();
+                    cands_board.pop_candidate();
                     continue 'inner;
                 } else {
                     continue 'outer;
@@ -249,44 +246,40 @@ fn is_uniquely_solvable(board: &Board) -> bool {
 }
 
 pub fn generate_valid_board<T: rand::Rng>(rng: &mut T, num_givens: u8) -> Board {
-    let mut board = generate_full_board(rng);
-    // println!("full board:");
-    // testing::print_board(&board);
+    if num_givens < 17 || num_givens >= 81 {
+        panic!("Invalid argument given for number of givens: {num_givens}.");
+    }
 
-    // TODO: bounds checking for num_givens
+    while true {
+        let mut board = generate_full_board(rng);
+        // (pseudo)random order of cells to clear
+        let mut positions: Vec<usize> = (0..81).collect();
+        positions.shuffle(rng);
 
-    // (pseudo)random order of cells to clear
-    let mut positions: Vec<usize> = (0..81).collect();
-    positions.shuffle(rng);
+        let mut remaining = 81;
+        for i in 0..(81-17) as usize {
+            let r = positions[i] / 9;
+            let c = positions[i] % 9;
 
-    let mut remaining = 81;
-    for i in 0..(81-17) as usize {
-        let r = positions[i] / 9;
-        let c = positions[i] % 9;
+            let val = board.values[r][c];
+            board.values[r][c] = None;
+            board.is_given[r][c] = false;
 
-        let val = board.values[r][c];
-        board.values[r][c] = None;
-        board.is_given[r][c] = false;
+            if !is_uniquely_solvable(&board) {
+                board.values[r][c] = val;
+                board.is_given[r][c] = true;
+                continue;
+            }
 
-        // testing::print_board(&board);
-        // println!("--------------------------------------");
-
-        // TODO: check for every potential non-given??
-        if !is_uniquely_solvable(&board) {
-            board.values[r][c] = val;
-            board.is_given[r][c] = true;
-            continue;
+            remaining -= 1;
+            if remaining == num_givens {
+                return board;
+            }
         }
 
-        remaining -= 1;
-        if remaining == num_givens {
+        if num_givens <= remaining && remaining <= num_givens + 2 {
             return board;
         }
     }
-
-    if remaining > num_givens {
-        return generate_valid_board(rng, num_givens);
-    }
-
-    board // TODO: is this needed?
+    return Board::zeroed();
 }
