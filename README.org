@@ -11,5 +11,14 @@ My attempt at a general sudoku program, written in Rust.
 - [X] .gitingore
 - [X] rust project structure
 - [X] rewrite of current state of C++ project in Rust
-- [ ] refactor
-- [ ] CLI argument parsing
+- [X] refactor
+- [X] CLI argument parsing
+- [ ] more efficient algorithm for lower numbers of givens (< 52)
+- [ ] tests
+- [ ] TUI interface (ratatui)
+- [ ] solver (exposed)
+- [ ] evaluator (exposed)
+- [ ] sudoku puzzle database
+- [ ] stats
+- [ ] sudoku technique finder
+- [ ] technique based puzzle generator

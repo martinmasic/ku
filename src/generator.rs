@@ -1,5 +1,4 @@
 use crate::game::{*};
-use crate::testing;
 
 use rand::seq::SliceRandom;
 use std::vec;
@@ -237,7 +236,7 @@ fn solutions_count(board: &Board) -> u64 {
         }
     }
 
-    solutions_count
+    // solutions_count
 }
 
 
@@ -245,12 +244,12 @@ fn is_uniquely_solvable(board: &Board) -> bool {
     solutions_count(board) == 1
 }
 
-pub fn generate_valid_board<T: rand::Rng>(rng: &mut T, num_givens: u8) -> Board {
+pub fn generate_valid_puzzle<T: rand::Rng>(rng: &mut T, num_givens: u8) -> Board {
     if num_givens < 17 || num_givens >= 81 {
         panic!("Invalid argument given for number of givens: {num_givens}.");
     }
 
-    while true {
+    loop {
         let mut board = generate_full_board(rng);
         // (pseudo)random order of cells to clear
         let mut positions: Vec<usize> = (0..81).collect();
@@ -281,5 +280,4 @@ pub fn generate_valid_board<T: rand::Rng>(rng: &mut T, num_givens: u8) -> Board 
             return board;
         }
     }
-    return Board::zeroed();
 }
