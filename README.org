@@ -13,7 +13,7 @@ My attempt at a general sudoku program, written in Rust.
 - [X] rewrite of current state of C++ project in Rust
 - [X] refactor
 - [X] CLI argument parsing
-- [ ] more efficient algorithm for lower numbers of givens (< 52)
+- [ ] more efficient algorithm for lower numbers of givens (<= 49)
 - [ ] tests
 - [ ] TUI interface (ratatui)
 - [ ] solver (exposed)
@@ -22,3 +22,4 @@ My attempt at a general sudoku program, written in Rust.
 - [ ] stats
 - [ ] sudoku technique finder
 - [ ] technique based puzzle generator
+  - [ ] technique bvased puzzle solver!
