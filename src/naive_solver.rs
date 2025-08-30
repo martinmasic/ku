@@ -1,10 +1,10 @@
-use crate::game::{ *, Cell::{ * } };
+use crate::{game, game::{ Board, Cell::{ * } }, utilities};
 
 use std::ops::Index;
 use std::ops::IndexMut;
 
 struct CandidatesBoard<'a> {
-    board: &'a Board,
+    board: &'a mut Board,
     candidates: [[Option<Vec<char>>;9];9],
     first_pos: usize,
     last_pos: usize,
@@ -35,16 +35,16 @@ impl IndexMut<(usize,usize)> for CandidatesBoard<'_> {
     }
 }
 impl<'a> CandidatesBoard<'a> {
-    fn new(board: &'a Board) -> Self {
+    fn new(board: &'a mut Board) -> Self {
         let mut candidates: [[Option<Vec<char>>; 9]; 9]  = Default::default();
-        let mut first = None; let mut last = 0;
+        let mut first_non_given = None; let mut last_non_given = 0;
         for i in 0..9 {
             for j in 0..9 {
-                if first.is_none() && let Cell::Empty = board.values[i][j] {
-                    first = Some(i * 9 + j);
+                if first_non_given.is_none() && let game::Cell::Empty = board.values[i][j] {
+                    first_non_given = Some(i * 9 + j);
                 }
-                if let Cell::Empty = board.values[i][j] {
-                    last = i * 9 + j;
+                if let game::Cell::Empty = board.values[i][j] {
+                    last_non_given = i * 9 + j;
                     candidates[i][j] = Some(('1'..='9').into_iter().collect());
                 }
             }
@@ -52,36 +52,45 @@ impl<'a> CandidatesBoard<'a> {
         CandidatesBoard {
             board: board,
             candidates: candidates,
-            first_pos: first.unwrap(),
-            last_pos: last,
-            current_pos: first.unwrap()
+            first_pos: first_non_given.unwrap(),
+            last_pos: last_non_given,
+            current_pos: first_non_given.unwrap()
         }
     }
 
-    fn is_first(&self) -> bool { self.current_pos == self.first_pos }
-    fn is_last(&self) -> bool { self.current_pos == self.last_pos }
+    fn is_first_nongiven(&self) -> bool { self.current_pos == self.first_pos }
+    fn is_last_nongiven(&self) -> bool { self.current_pos == self.last_pos }
 
-    fn current(&mut self) -> &mut Option<Vec<char>> {
+    fn current_cell_candidates(&mut self) -> &mut Option<Vec<char>> {
         let pos = self.current_pos;
         &mut self[pos]
     }
-    fn pop_candidate(&mut self) {
-        if let Some(cands) = self.current() {
+
+    fn pop_current_candidate(&mut self) {
+        if let Some(cands) = self.current_cell_candidates() {
             cands.pop();
         }
     }
 
-    fn reset_curr_cands(&mut self) {
-        *self.current() = Some(('1'..='9').into_iter().collect());
+    fn current_candidate(&mut self) -> Option<char> {
+        if let Some(cands) = self.current_cell_candidates().as_ref() {
+            cands.last().cloned()
+        } else {
+            None
+        }
     }
 
-    fn inc(&mut self) {
+    fn reset_current_candidates(&mut self) {
+        *self.current_cell_candidates() = Some(('1'..='9').into_iter().collect());
+    }
+
+    fn next_non_given(&mut self) {
         for i in (self.current_pos + 1)..81 {
             let cands = &self[i];
             if !cands.is_none() { self.current_pos = i; return; }
         }
     }
-    fn dec(&mut self) {
+    fn prev_non_given(&mut self) {
         for i in (0..self.current_pos).rev() {
             let cands = &self[i];
             if !cands.is_none() { self.current_pos = i; return; }
@@ -109,7 +118,7 @@ impl<'a> CandidatesBoard<'a> {
                 Empty => {},
             }
         }
-        let l = c - c % 3; let u = r - r % 3;
+        let (u, l) = utilities::square_limits_from_cell(r, c);
         for i in u..(u+3) {
             for j in l..(l+3) {
                 match self.board.values[i][j] {
@@ -123,61 +132,98 @@ impl<'a> CandidatesBoard<'a> {
 
         true
     }
+
+    pub fn generate_solution(&mut self) {
+        for i in 0..9 {
+            for j in 0..9 {
+                if let Empty = self.board.values[i][j]
+                {
+                    let value = self.candidates[i][j]
+                        .as_ref().unwrap()
+                        .last().unwrap().clone();
+                    self.board.values[i][j] = NonGiven(value);
+                }
+            }
+        }
+    }
+
 }
 
-fn count_solutions(board: &Board, test_unique: bool) -> u64 {
+pub enum SolverResult<'a> {
+    Solution(&'a Board),
+    Invalid
+}
+
+pub fn solve(board: &mut Board) -> SolverResult {
     let mut solutions_count: u64 = 0;
-    let mut cands_board = CandidatesBoard::new(&board);
+    let mut board_candidates = CandidatesBoard::new(board);
+    // let mut solution = board.clone();
     'outer: loop {
-        if cands_board.is_current_candidate_valid() {
-            if cands_board.is_last() {
+        // current candidate is valid
+        if board_candidates.is_current_candidate_valid() {
+            if board_candidates.is_last_nongiven() {
                 solutions_count += 1;
-                if test_unique && solutions_count >= 2 {
-                    return solutions_count;
-                }
-                if cands_board.is_first() {
-                    return solutions_count;
+                // invalid puzzle
+                if solutions_count >= 2 { return SolverResult::Invalid; }
+
+                // set solution board
+                board_candidates.generate_solution();
+
+                // only one non-given in puzzle (trivial case), valid solution
+                if board_candidates.is_first_nongiven() {
+                    return SolverResult::Solution(board);
                 }
 
+                // recursively reset cell candidates until
+                // first available cell candidate
                 loop {
-                    cands_board.reset_curr_cands();
-                    cands_board.dec();
-                    cands_board.pop_candidate();
+                    board_candidates.reset_current_candidates();
+                    board_candidates.prev_non_given();
+                    board_candidates.pop_current_candidate();
 
-                    if cands_board.current().as_ref().unwrap().is_empty() {
-                        if cands_board.is_first() {
-                            return solutions_count;
+                    if board_candidates.current_candidate().is_none() {
+                        if board_candidates.is_first_nongiven() {
+                            eprintln!("prvi blok");
+                            return SolverResult::Solution(board);
                         }
                     } else {
                         continue 'outer;
                     }
                 }
             } else {
-                cands_board.inc();
+                board_candidates.next_non_given();
             }
-        } else {
+        }
+        // current candidate is invalid
+        else {
             loop {
-                if cands_board.is_first()
-                && cands_board.current().as_ref().unwrap().is_empty() {
-                    return solutions_count;
-                }
+                // TODO: analyse this block for refactoring, optimizations
+                // and correctness
 
-                cands_board.pop_candidate();
-                if cands_board.current().as_ref().unwrap().is_empty() {
-                    if cands_board.is_first() {
-                        return solutions_count;
+                // // no valid candidates in first non-given
+                // if board_candidates.is_first_nongiven() &&
+                //     board_candidates.current_cell_candidates().as_ref().unwrap().is_empty() &&
+                //     solutions_count >= 1
+                // {
+                //     return SolverResult::Invalid;
+                // }
+
+                // TODO: comments!!
+                board_candidates.pop_current_candidate();
+                if board_candidates.current_cell_candidates().as_ref().unwrap().is_empty() {
+                    if board_candidates.is_first_nongiven() {
+                        return match solutions_count {
+                            2..   => SolverResult::Invalid,
+                            0..=1 => SolverResult::Solution(board),
+                        }
                     }
-                    cands_board.reset_curr_cands();
-                    cands_board.dec();
-                    cands_board.pop_candidate();
+                    board_candidates.reset_current_candidates();
+                    board_candidates.prev_non_given();
+                    board_candidates.pop_current_candidate();
                 } else {
                     continue 'outer;
                 }
             }
         }
     }
-}
-
-pub fn is_uniquely_solvable(board: &Board) -> bool {
-    count_solutions(board, true) == 1
 }

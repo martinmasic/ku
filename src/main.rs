@@ -2,11 +2,13 @@ mod game;
 mod generator;
 mod cli_display;
 mod naive_solver;
+mod evaluator;
+mod utilities;
 
 use crate::generator::{*};
-use rand::SeedableRng;
-use rand_chacha::ChaCha8Rng;
-use std::time::{SystemTime, UNIX_EPOCH};
+// use rand::SeedableRng;
+// use rand_chacha::ChaCha8Rng;
+// use std::time::{SystemTime, UNIX_EPOCH};
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
@@ -29,13 +31,13 @@ enum Commands {
 }
 
 fn generate(num: &u8) {
-    let now: u64 = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .expect("Time went backwards")
-        .as_secs();
+    // let now: u64 = SystemTime::now()
+    //     .duration_since(UNIX_EPOCH)
+    //     .expect("Time went backwards")
+    //     .as_secs();
 
-    let mut rng = ChaCha8Rng::seed_from_u64(now);
-    let board = generate_valid_puzzle(&mut rng, *num);
+    // let mut rng = ChaCha8Rng::seed_from_u64(now);
+    let board = generate_puzzle(*num);
     cli_display::print_board(&board);
 }
 

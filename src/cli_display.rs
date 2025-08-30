@@ -1,36 +1,65 @@
 use crate::game::{*};
+use colored::*;
 
-pub fn print_board(board: &Board) {
-    for i in 0..3 {
-        print!(
-            "{} {} {} | {} {} {} | {} {} {}\n",
-            board.values[i][0].unwrap_or('.'), board.values[i][1].unwrap_or('.'), board.values[i][2].unwrap_or('.'),
-            board.values[i][3].unwrap_or('.'), board.values[i][4].unwrap_or('.'), board.values[i][5].unwrap_or('.'),
-            board.values[i][6].unwrap_or('.'), board.values[i][7].unwrap_or('.'), board.values[i][8].unwrap_or('.'),
-        );
-    }
-    for _i in 0..21 {
-        print!("-");
-    }
-    print!("\n");
-    for i in 3..6 {
-        print!(
-            "{} {} {} | {} {} {} | {} {} {}\n",
-            board.values[i][0].unwrap_or('.'), board.values[i][1].unwrap_or('.'), board.values[i][2].unwrap_or('.'),
-            board.values[i][3].unwrap_or('.'), board.values[i][4].unwrap_or('.'), board.values[i][5].unwrap_or('.'),
-            board.values[i][6].unwrap_or('.'), board.values[i][7].unwrap_or('.'), board.values[i][8].unwrap_or('.'),
-        );
-    }
-    for _i in 0..21 {
-        print!("-");
-    }
-    print!("\n");
-    for i in 6..9 {
-        print!(
-            "{} {} {} | {} {} {} | {} {} {}\n",
-            board.values[i][0].unwrap_or('.'), board.values[i][1].unwrap_or('.'), board.values[i][2].unwrap_or('.'),
-            board.values[i][3].unwrap_or('.'), board.values[i][4].unwrap_or('.'), board.values[i][5].unwrap_or('.'),
-            board.values[i][6].unwrap_or('.'), board.values[i][7].unwrap_or('.'), board.values[i][8].unwrap_or('.'),
-        );
+fn print_cell_value(cell: &Cell) {
+    match cell {
+        Cell::Given(x) => {
+            print!("{}", x.to_string().yellow());
+        },
+        Cell::NonGiven(x) => {
+            print!("{}", x.to_string().green());
+        },
+        Cell::Empty => {
+            print!("{}", ".".white());
+        }
     }
 }
+
+fn print_three_rows(board: &Board, rows: std::ops::Range<usize>) {
+    for i in rows {
+        print!("│ ");
+        for j in 0..9 {
+            print_cell_value(&board.values[i][j]);
+            if j != 8 { print!(" "); }
+            if j == 2 || j == 5 { print!("│ "); }
+        }
+        println!(" │");
+    }
+}
+
+pub fn print_board(board: &Board) {
+    let horizontal_separator = format!(
+        "{}{}{}{}{}{}{}",
+        "├".to_owned(), &"─".repeat(7),
+        "┼", &"─".repeat(7),
+        "┼", &"─".repeat(7), "┤"
+    ) ;
+    let top_border = format!(
+        "{}{}{}{}{}{}{}",
+        "┌".to_owned(), &"─".repeat(7),
+        "┬", &"─".repeat(7),
+        "┬", &"─".repeat(7), "┐"
+    );
+
+    let bot_border = format!(
+        "{}{}{}{}{}{}{}",
+        "└".to_owned(), &"─".repeat(7),
+        "┴", &"─".repeat(7),
+        "┴", &"─".repeat(7), "┘"
+    );
+
+    println!("{}", top_border);
+
+    print_three_rows(board, 0..3);
+
+    println!("{}", horizontal_separator);
+
+    print_three_rows(board, 3..6);
+
+    println!("{}", horizontal_separator);
+
+    print_three_rows(board, 6..9);
+
+    println!("{}", bot_border);
+}
+

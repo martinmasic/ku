@@ -14,12 +14,14 @@ My attempt at a general sudoku program, written in Rust.
 - [X] refactor
 - [X] CLI argument parsing
 - [ ] more efficient algorithm for lower numbers of givens (<= 49)
+- [ ] parallelization
 - [ ] tests
 - [ ] TUI interface (ratatui)
-- [ ] solver (exposed)
-- [ ] evaluator (exposed)
+- [ ] solver
+- [ ] generator
+- [ ] evaluator
 - [ ] sudoku puzzle database
 - [ ] stats
 - [ ] sudoku technique finder
 - [ ] technique based puzzle generator
-  - [ ] technique bvased puzzle solver!
+  - [ ] technique based puzzle solver!

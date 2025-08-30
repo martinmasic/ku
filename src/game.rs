@@ -9,15 +9,6 @@ pub enum Cell {
     Empty
 }
 
-impl Cell {
-    pub fn unwrap_or(self, default: char) -> char {
-        match self {
-            Cell::Given(x) | Cell::NonGiven(x) => x,
-            Cell::Empty => default,
-        }
-    }
-}
-
 pub struct Board {
     pub values: [[Cell; 9]; 9],
 }
