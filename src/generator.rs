@@ -132,7 +132,7 @@ impl Generator for NaiveGenerator {
 }
 
 #[cfg(test)]
-mod tests {
+mod naive_generator_tests {
     use super::*;
 
     #[test]

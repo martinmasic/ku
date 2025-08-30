@@ -8,9 +8,7 @@ mod utilities;
 use crate::{
     generator::{*},
 };
-// use rand::SeedableRng;
-// use rand_chacha::ChaCha8Rng;
-// use std::time::{SystemTime, UNIX_EPOCH};
+
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
