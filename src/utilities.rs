@@ -13,6 +13,11 @@ pub fn square_limits_from_cell(r: usize, c: usize) -> (usize, usize) {
     (u, l)
 }
 
+pub fn coords_from_pos(pos: usize) -> (usize, usize) {
+    let r = pos / 9; let c = pos % 9;
+    (r, c)
+}
+
 // i -> r; j -> c
 //  0 1 2 3 4 5 6 7 8
 // 0     |     |

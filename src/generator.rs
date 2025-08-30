@@ -3,14 +3,10 @@ use crate::{
     game::{ Board, Cell::{*} },
     utilities,
     naive_solver,
-    solver::{*}
+    naive_solver::{*},
 };
 
 use rand::seq::SliceRandom;
-use rand::rngs::ThreadRng;
-
-use std::thread;
-use crossbeam::channel;
 
 use crate::evaluator;
 
@@ -43,7 +39,7 @@ fn is_valid_candidate(board: &Board, cand: char, r: usize, c: usize) -> bool {
     for i in u..(u+3) {
         for j in l..(l+3) {
             match board.values[i][j] {
-                Given(x) | NonGiven(x) => { if x == cand { return false; } },
+                Given(x) | NonGiven(x) => if x == cand { return false; },
                 Empty => {},
             }
         }
@@ -58,8 +54,7 @@ pub fn generate_full_board<T: rand::Rng>(rng: &mut T) -> Board {
 
     let mut pos = 0;
     while pos < 81 {
-        let r = pos / 9;
-        let c = pos % 9;
+        let (r, c) = utilities::coords_from_pos(pos);
 
         match candidates[r][c].pop() {
             Some(cand) => {
@@ -80,6 +75,10 @@ pub fn generate_full_board<T: rand::Rng>(rng: &mut T) -> Board {
     board
 }
 
+pub trait Generator {
+    fn generate_puzzle(&self) -> game::Board;
+}
+
 pub struct NaiveGenerator {
     pub set_givens: u8
 }
@@ -88,85 +87,47 @@ impl NaiveGenerator {
     pub fn new(set_givens: u8) -> NaiveGenerator {
         NaiveGenerator { set_givens }
     }
+}
 
-    pub fn generate_puzzle(&self) -> game::Board {
+impl Generator for NaiveGenerator {
+    fn generate_puzzle(&self) -> game::Board {
         assert!(
             (17..81).contains(&self.set_givens),
             "Invalid argument given for number of givens: {}.\n\
             Number of givens should be between 17 and 80.",
             &self.set_givens
         );
-        use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
 
-        let (tx, rx) = channel::unbounded();
-        let done = std::sync::Arc::new(std::sync::atomic::AtomicBool::new(false));
+        let mut rng = rand::rng();
+        let mut board = generate_full_board(&mut rng);
+        'main_loop: loop {
+            board = board.clone();
+            // (pseudo)random order of cells to clear
+            let mut positions: Vec<usize> = (0..81).collect();
+            positions.shuffle(&mut rng);
 
-        let work = |
-            rng: &mut ThreadRng,
-            done: &Arc<AtomicBool>,
-            set_givens: u8
-        | -> Result<Board, &'static str> {
-            let done = done.clone();
-            // (pseudo-)randomly generated full board
-            let mut board = generate_full_board(rng);
-            while !done.load(Ordering::Relaxed) {
-                board = board.clone();
-                // (pseudo)random order of cells to clear
-                let mut positions: Vec<usize> = (0..81).collect();
-                positions.shuffle(rng);
+            // clear cells and test if board is a valid puzzle
+            // by trying to solve it
+            let mut num_givens = 81;
+            for i in 0..(81-17) as usize {
+                let (r, c) = utilities::coords_from_pos(positions[i]);
+                let val = board.values[r][c];
+                board.values[r][c] = game::Cell::Empty;
 
-                // clear cells and test if board is a valid puzzle
-                // by trying to solve it
-                let mut num_givens = 81;
-                for i in 0..(81-17) as usize {
-                    if done.load(Ordering::Relaxed) {
-                        return Err("Thread killed!");
-                    }
-
-                    let r = positions[i] / 9;
-                    let c = positions[i] % 9;
-                    let val = board.values[r][c];
-                    board.values[r][c] = game::Cell::Empty;
-
-                    match naive_solver::solve(&mut board) {
-                        SolverResult::Invalid => board.values[r][c] = val,
-                        SolverResult::Valid => {
-                            num_givens -= 1;
-                            if num_givens == set_givens { return Ok(board); }
-                        }
-                    }
-                }
-
-                if (set_givens..=(set_givens + 2)).contains(&num_givens) {
-                    if let SolverResult::Valid = naive_solver::solve(&mut board) {
-                        return Ok(board);
+                match naive_solver::solve(&mut board) {
+                    SolverResult::Invalid => board.values[r][c] = val,
+                    SolverResult::Valid => {
+                        num_givens -= 1;
+                        if num_givens == self.set_givens { break 'main_loop; }
                     }
                 }
             }
-
-            Err("Thread killed!")
-        };
-
-        let set_givens = self.set_givens;
-        for _ in 0..1 {
-            let tx = tx.clone();
-            let done = Arc::clone(&done);
-            thread::spawn(move || {
-                let mut trng = rand::rng();
-                let result = work(&mut trng, &done, set_givens);
-
-                if let Ok(result) = result {
-                    done.store(true, Ordering::Relaxed);
-                    let _ = tx.send(result).unwrap();
-                }
-            });
         }
 
-        let result = rx.recv().unwrap();
-        let valid = evaluator::evaluate(&result);
-        assert_eq!(valid, true, "The generated puzzle is not valid!");
+        let valid = evaluator::evaluate(&board);
+        debug_assert_eq!(valid, true, "The generated puzzle is not valid!");
 
-        result
+        board
     }
 }
 

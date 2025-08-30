@@ -4,7 +4,6 @@ mod cli_display;
 mod naive_solver;
 mod evaluator;
 mod utilities;
-mod solver;
 
 use crate::{
     generator::{*},
@@ -16,7 +15,7 @@ use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
 #[command(name = "ku")]
-#[command(version = "0.0.1")]
+#[command(version = "0.1.0")]
 #[command(about = "Ultimate sudoku app", long_about = None)]
 #[command(next_line_help = true)]
 #[command(arg_required_else_help = true)]

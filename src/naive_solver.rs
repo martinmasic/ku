@@ -2,7 +2,6 @@ use crate::{
     game,
     game::{ Board, Cell::{ * } },
     utilities,
-    solver::{ SolverResult }
 };
 
 use std::ops::Index;
@@ -138,6 +137,10 @@ impl<'a> CandidatesBoard<'a> {
         true
     }
 
+    pub fn curr_cell_no_candidates(&mut self) -> bool {
+        self.current_cell_candidates().as_ref().unwrap().is_empty()
+    }
+
     pub fn generate_solution(&mut self) {
         for i in 0..9 {
             for j in 0..9 {
@@ -152,6 +155,11 @@ impl<'a> CandidatesBoard<'a> {
         }
     }
 
+}
+
+pub enum SolverResult {
+    Invalid,
+    Valid,
 }
 
 pub fn solve(board: &mut Board) -> SolverResult {
@@ -197,18 +205,16 @@ pub fn solve(board: &mut Board) -> SolverResult {
         // current candidate is invalid
         else {
             loop {
-                // TODO: analyse this block for refactoring, optimizations
-                // and correctness
-
-                // TODO: comments!!
                 board_candidates.pop_current_candidate();
-                if board_candidates.current_cell_candidates().as_ref().unwrap().is_empty() {
+                if board_candidates.curr_cell_no_candidates() {
                     if board_candidates.is_first_nongiven() {
                         return match solutions_count {
                             2..   => SolverResult::Invalid,
                             0..=1 => SolverResult::Valid,
                         }
                     }
+                    // since no valid candidates in current cell,
+                    // pop previous cell's candidate
                     board_candidates.reset_current_candidates();
                     board_candidates.prev_non_given();
                     board_candidates.pop_current_candidate();
