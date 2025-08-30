@@ -1,4 +1,9 @@
-use crate::{game, game::{ Board, Cell::{ * } }, utilities};
+use crate::{
+    game,
+    game::{ Board, Cell::{ * } },
+    utilities,
+    solver::{ SolverResult }
+};
 
 use std::ops::Index;
 use std::ops::IndexMut;
@@ -149,11 +154,6 @@ impl<'a> CandidatesBoard<'a> {
 
 }
 
-pub enum SolverResult<'a> {
-    Solution(&'a Board),
-    Invalid
-}
-
 pub fn solve(board: &mut Board) -> SolverResult {
     let mut solutions_count: u64 = 0;
     let mut board_candidates = CandidatesBoard::new(board);
@@ -171,7 +171,7 @@ pub fn solve(board: &mut Board) -> SolverResult {
 
                 // only one non-given in puzzle (trivial case), valid solution
                 if board_candidates.is_first_nongiven() {
-                    return SolverResult::Solution(board);
+                    return SolverResult::Valid;
                 }
 
                 // recursively reset cell candidates until
@@ -184,7 +184,7 @@ pub fn solve(board: &mut Board) -> SolverResult {
                     if board_candidates.current_candidate().is_none() {
                         if board_candidates.is_first_nongiven() {
                             eprintln!("prvi blok");
-                            return SolverResult::Solution(board);
+                            return SolverResult::Valid;
                         }
                     } else {
                         continue 'outer;
@@ -200,21 +200,13 @@ pub fn solve(board: &mut Board) -> SolverResult {
                 // TODO: analyse this block for refactoring, optimizations
                 // and correctness
 
-                // // no valid candidates in first non-given
-                // if board_candidates.is_first_nongiven() &&
-                //     board_candidates.current_cell_candidates().as_ref().unwrap().is_empty() &&
-                //     solutions_count >= 1
-                // {
-                //     return SolverResult::Invalid;
-                // }
-
                 // TODO: comments!!
                 board_candidates.pop_current_candidate();
                 if board_candidates.current_cell_candidates().as_ref().unwrap().is_empty() {
                     if board_candidates.is_first_nongiven() {
                         return match solutions_count {
                             2..   => SolverResult::Invalid,
-                            0..=1 => SolverResult::Solution(board),
+                            0..=1 => SolverResult::Valid,
                         }
                     }
                     board_candidates.reset_current_candidates();
