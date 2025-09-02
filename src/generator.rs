@@ -1,9 +1,11 @@
+use std::fmt::Debug;
+
 use crate::{
     game,
-    game::{ Board, Cell::{*} },
+    game::{ Board, Cell::* },
     utilities,
     naive_solver,
-    naive_solver::{*},
+    naive_solver::*,
 };
 
 use rand::seq::SliceRandom;
@@ -75,27 +77,30 @@ pub fn generate_full_board<T: rand::Rng>(rng: &mut T) -> Board {
     board
 }
 
-pub trait Generator {
+pub trait Generator : Debug {
     fn generate_puzzle(&self) -> game::Board;
 }
 
+#[derive(Debug, Default)]
 pub struct NaiveGenerator {
-    pub set_givens: u8
+    pub num_givens: u8
 }
 
 impl NaiveGenerator {
     pub fn new(set_givens: u8) -> NaiveGenerator {
-        NaiveGenerator { set_givens }
+        NaiveGenerator {
+            num_givens: if set_givens != 0 { set_givens } else { 50 }
+        }
     }
 }
 
 impl Generator for NaiveGenerator {
     fn generate_puzzle(&self) -> game::Board {
         assert!(
-            (17..81).contains(&self.set_givens),
+            (17..81).contains(&self.num_givens),
             "Invalid argument given for number of givens: {}.\n\
             Number of givens should be between 17 and 80.",
-            &self.set_givens
+            &self.num_givens
         );
 
         let mut rng = rand::rng();
@@ -108,7 +113,7 @@ impl Generator for NaiveGenerator {
 
             // clear cells and test if board is a valid puzzle
             // by trying to solve it
-            let mut num_givens = 81;
+            let mut current_givens = 81;
             for i in 0..(81-17) as usize {
                 let (r, c) = utilities::coords_from_pos(positions[i]);
                 let val = board.values[r][c];
@@ -117,8 +122,8 @@ impl Generator for NaiveGenerator {
                 match naive_solver::solve(&mut board) {
                     SolverResult::Invalid => board.values[r][c] = val,
                     SolverResult::Valid => {
-                        num_givens -= 1;
-                        if num_givens == self.set_givens { break 'main_loop; }
+                        current_givens -= 1;
+                        if current_givens == self.num_givens { break 'main_loop; }
                     }
                 }
             }

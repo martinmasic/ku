@@ -4,17 +4,22 @@ mod cli_display;
 mod naive_solver;
 mod evaluator;
 mod utilities;
+mod tui;
+
+use std::io;
 
 use crate::{
-    generator::{*},
+    generator::*,
+    tui::*
 };
 
 use clap::{Parser, Subcommand};
+use color_eyre::eyre::{WrapErr, bail};
 
 #[derive(Parser)]
 #[command(name = "ku")]
 #[command(version = "0.1.0")]
-#[command(about = "Ultimate sudoku app", long_about = None)]
+#[command(about = "The ultimate sudoku app, eventually", long_about = None)]
 #[command(next_line_help = true)]
 #[command(arg_required_else_help = true)]
 struct Cli {
@@ -28,6 +33,8 @@ enum Commands {
         #[arg(short, long)]
         num_givens: u8,
     },
+    Tui,
+    Gui,
 }
 
 fn generate(num: &u8) {
@@ -36,12 +43,17 @@ fn generate(num: &u8) {
     cli_display::print_board(&board);
 }
 
-fn main() {
+fn main() -> color_eyre::Result<()> {
+    color_eyre::install()?; // TODO: is this needed?
+
     let cli = Cli::parse();
 
     match &cli.command {
         Some(Commands::Generate { num_givens: num }) => generate(num),
+        Some(Commands::Tui) => { return tui::run(); },
+        Some(Commands::Gui) => { panic!("Not implemented!"); },
         None => {}
     }
 
+    Ok(())
 }

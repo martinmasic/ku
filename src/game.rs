@@ -1,7 +1,8 @@
+
+
 pub const LEGAL_VALUES: [char; 9] = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
-
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Debug)]
 #[allow(dead_code)]
 pub enum Cell {
     Given(char),
@@ -9,6 +10,20 @@ pub enum Cell {
     Empty
 }
 
+impl Cell {
+    pub fn to_string(&self, show_non_givens: bool) -> String {
+        match self {
+            Cell::Given(x) => x.to_string(),
+            Cell::NonGiven(x) => {
+                if show_non_givens { x.to_string() }
+                else { "_".to_string() }
+            },
+            Cell::Empty => "_".to_string()
+        }
+    }
+}
+
+#[derive(Debug)]
 pub struct Board {
     pub values: [[Cell; 9]; 9],
 }

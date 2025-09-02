@@ -1,4 +1,4 @@
-use crate::game::{*};
+use crate::game::*;
 use colored::*;
 
 fn print_cell_value(cell: &Cell) {
@@ -10,7 +10,7 @@ fn print_cell_value(cell: &Cell) {
             print!("{}", x.to_string().green());
         },
         Cell::Empty => {
-            print!("{}", ".".white());
+            print!("{}", "_".white());
         }
     }
 }
