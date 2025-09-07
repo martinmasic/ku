@@ -89,7 +89,7 @@ pub struct NaiveGenerator {
 impl NaiveGenerator {
     pub fn new(set_givens: u8) -> NaiveGenerator {
         NaiveGenerator {
-            num_givens: if set_givens != 0 { set_givens } else { 50 }
+            num_givens: if set_givens != 0 { set_givens } else { 39 }
         }
     }
 }

@@ -6,15 +6,11 @@ mod evaluator;
 mod utilities;
 mod tui;
 
-use std::io;
-
 use crate::{
     generator::*,
-    tui::*
 };
 
 use clap::{Parser, Subcommand};
-use color_eyre::eyre::{WrapErr, bail};
 
 #[derive(Parser)]
 #[command(name = "ku")]
