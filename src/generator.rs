@@ -143,14 +143,28 @@ mod naive_generator_tests {
 
     #[test]
     fn test_generating_full_board() {
-        for _ in 0..9 {
+        for _ in 0..99 {
             let mut trng = rand::rng();
-            let board = generate_full_board(&mut trng);
-            let valid = evaluator::evaluate(&board);
 
+            let board = generate_full_board(&mut trng);
+
+            let valid = evaluator::evaluate(&board);
             if !valid { cli_display::print_board(&board); }
             assert_eq!(valid, true);
         }
+    }
 
+    #[test]
+    fn test_generating_puzzle() {
+        for num_givens in 17..=80 {
+            let mut trng = rand::rng();
+            let generator = NaiveGenerator::new(num_givens);
+
+            let board = generator.generate_puzzle();
+
+            let valid = evaluator::evaluate(&board);
+            if !valid { cli_display::print_board(&board); }
+            assert_eq!(valid, true);
+        }
     }
 }
