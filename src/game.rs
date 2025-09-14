@@ -24,7 +24,7 @@ impl Cell {
 
 #[derive(Copy, Debug, Clone)]
 pub struct Board {
-    pub values: [[Cell; 9]; 9],
+    values: [[Cell; 9]; 9],
 }
 
 impl Board {
@@ -36,28 +36,43 @@ impl Board {
         Board::new([[Cell::Empty; 9]; 9])
     }
 
+    pub fn at(&self, row: usize, col: usize) -> Cell {
+        debug_assert!(row <= 8);
+        debug_assert!(col <= 8);
+
+        self.values[row][col]
+    }
+
+    pub fn set(&mut self, row: usize, col: usize, digit: Cell) {
+        debug_assert!(row <= 8);
+        debug_assert!(col <= 8);
+
+        self.values[row][col] = digit;
+    }
+
+    pub fn row_cells(&self, row: usize) -> impl Iterator<Item = (usize, &Cell)> {
+        self.values[row].iter().enumerate()
+    }
+
+    pub fn col_cells(&self, col: usize) -> impl Iterator<Item = (usize, &Cell)> {
+        self.values.iter().map(move |r| &r[col]).enumerate()
+    }
+
     pub fn non_givens_cleared(mut self) -> Board {
-        for i in 0..9 {
-            for j in 0..9 {
-                if let Cell::NonGiven(_) = self.values[i][j] {
-                    self.values[i][j] = Cell::Empty;
+        for r in 0..9 {
+            for c in 0..9 {
+                if let Cell::NonGiven(_) = self.at(r, c) {
+                    self.set(r, c, Cell::Empty);
                 }
             }
         }
         self
     }
 
-    pub fn set(&mut self, digit: Cell, pos: (usize, usize)) {
-        self.values[pos.0][pos.1] = digit;
-    }
-
-    pub fn set_non_given(&mut self, digit: Cell, pos: (usize, usize)) {
-        if let Cell::Given(_) = digit { return; }
-        if let Cell::NonGiven(_) = self.values[pos.0][pos.1] {
-            self.set(digit, pos);
-        }
-        if let Cell::Empty = self.values[pos.0][pos.1] {
-            self.set(digit, pos);
+    pub fn set_non_given(&mut self, row: usize, col: usize, digit: Cell) {
+        match self.at(row, col) {
+            Cell::Given(_) => return,
+            Cell::NonGiven(_) | Cell::Empty => self.set(row, col, digit),
         }
     }
 }

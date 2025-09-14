@@ -84,15 +84,15 @@ impl<'a> Widget for &'a BoardWidget<'a> {
             "━".repeat(7), "┫"
         );
 
-        for r in 0..9 {
+        for row in 0..9 {
             let mut line: Vec<Span> = Vec::new();
             line.push(Span::raw("┃ ".to_string()));
-            for (c, cell) in self.board.values[r].iter().enumerate() {
+            for (col, cell) in self.board.row_cells(row) {
                 match cell {
                     Cell::Given(ch) => {
                         let mut style = self.given_style
                             .unwrap_or(Style::default());
-                        if let Some(pos) = self.position && pos == (r,c) {
+                        if let Some(pos) = self.position && pos == (row,col) {
                             style = style
                                 .bg(Color::Magenta)
                                 .fg(Color::Black);
@@ -106,7 +106,7 @@ impl<'a> Widget for &'a BoardWidget<'a> {
                         if self.show_non_givens {
                             let mut style = self.non_given_style
                                 .unwrap_or(Style::default());
-                            if let Some(pos) = self.position && pos == (r,c) {
+                            if let Some(pos) = self.position && pos == (row,col) {
                                 style = style
                                     .bg(Color::Magenta)
                                     .fg(Color::Black);
@@ -118,7 +118,7 @@ impl<'a> Widget for &'a BoardWidget<'a> {
                         } else {
                             let mut style = self.empty_style
                                 .unwrap_or(Style::default());
-                            if let Some(pos) = self.position && pos == (r,c) {
+                            if let Some(pos) = self.position && pos == (row,col) {
                                 style = style
                                     .bg(Color::Magenta)
                                     .fg(Color::Black);
@@ -132,7 +132,7 @@ impl<'a> Widget for &'a BoardWidget<'a> {
                     Cell::Empty => {
                         let mut style = self.empty_style
                             .unwrap_or(Style::default());
-                        if let Some(pos) = self.position && pos == (r,c) {
+                        if let Some(pos) = self.position && pos == (row,col) {
                             style = style
                                 .bg(Color::Magenta)
                                 .fg(Color::Black);
@@ -145,14 +145,14 @@ impl<'a> Widget for &'a BoardWidget<'a> {
                 }
 
 
-                if c == 2 || c == 5 { line.push(Span::raw(" ┃ ")); }
-                else if c != 8 { line.push(Span::raw(" ")); }
+                if col == 2 || col == 5 { line.push(Span::raw(" ┃ ")); }
+                else if col != 8 { line.push(Span::raw(" ")); }
             }
             line.push(Span::raw(" ┃"));
 
             lines.push(Line::from(line));
 
-            if r == 2 || r == 5 {
+            if row == 2 || row == 5 {
                 lines.push(Line::from(vec![Span::raw(sep.clone())]));
             }
         }

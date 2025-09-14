@@ -19,7 +19,7 @@ fn print_three_rows(board: &Board, rows: std::ops::Range<usize>) {
     for i in rows {
         print!("│ ");
         for j in 0..9 {
-            print_cell_value(&board.values[i][j]);
+            print_cell_value(&board.at(i, j));
             if j != 8 { print!(" "); }
             if j == 2 || j == 5 { print!("│ "); }
         }

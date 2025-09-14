@@ -6,7 +6,7 @@ pub fn evaluate(board: &Board) -> bool {
     for i in 0..9 {
         let mut set = HashSet::new();
         for j in 0..9 {
-            match board.values[i][j] {
+            match board.at(i, j) {
                 Given(x) => if !set.insert(x) { return false; },
                 NonGiven(x) => if !set.insert(x) { return false; },
                 Empty => { return false; },
@@ -19,7 +19,7 @@ pub fn evaluate(board: &Board) -> bool {
     for j in 0..9 {
         let mut set = HashSet::new();
         for i in 0..9 {
-            match board.values[i][j] {
+            match board.at(i, j) {
                 Given(x) => if !set.insert(x) { return false; },
                 NonGiven(x) => if !set.insert(x) { return false; },
                 Empty => { return false; },
@@ -34,7 +34,7 @@ pub fn evaluate(board: &Board) -> bool {
         let mut set = HashSet::new();
         for i in u..=(u+2) {
             for j in l..=(l+2) {
-                match board.values[i][j] {
+                match board.at(i, j) {
                     Given(x) => if !set.insert(x) { return false; },
                     NonGiven(x) => if !set.insert(x) { return false; },
                     Empty => { return false; },

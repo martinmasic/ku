@@ -44,10 +44,10 @@ impl<'a> CandidatesBoard<'a> {
         let mut first_non_given = None; let mut last_non_given = 0;
         for i in 0..9 {
             for j in 0..9 {
-                if first_non_given.is_none() && let game::Cell::Empty = board.values[i][j] {
+                if first_non_given.is_none() && let game::Cell::Empty = board.at(i, j) {
                     first_non_given = Some(i * 9 + j);
                 }
-                if let game::Cell::Empty = board.values[i][j] {
+                if let game::Cell::Empty = board.at(i, j) {
                     last_non_given = i * 9 + j;
                     candidates[i][j] = Some(('1'..='9').into_iter().collect());
                 }
@@ -107,7 +107,7 @@ impl<'a> CandidatesBoard<'a> {
         let cand = self[self.current_pos].as_ref().unwrap().last().unwrap();
 
         for i in 0..r {
-            match self.board.values[i][c] {
+            match self.board.at(i, c) {
                 Given(x) | NonGiven(x) => {
                     if x == *cand { return false; }
                 },
@@ -115,7 +115,7 @@ impl<'a> CandidatesBoard<'a> {
             }
         }
         for j in 0..c {
-            match self.board.values[r][j] {
+            match self.board.at(r, j) {
                 Given(x) | NonGiven(x) => {
                     if x == *cand { return false; }
                 },
@@ -125,7 +125,7 @@ impl<'a> CandidatesBoard<'a> {
         let (u, l) = utilities::square_limits_from_cell(r, c);
         for i in u..(u+3) {
             for j in l..(l+3) {
-                match self.board.values[i][j] {
+                match self.board.at(i, j) {
                     Given(x) | NonGiven(x) => {
                         if x == *cand { return false; }
                     },
@@ -144,12 +144,12 @@ impl<'a> CandidatesBoard<'a> {
     pub fn generate_solution(&mut self) {
         for i in 0..9 {
             for j in 0..9 {
-                if let Empty = self.board.values[i][j]
+                if let Empty = self.board.at(i, j)
                 {
                     let value = self.candidates[i][j]
                         .as_ref().unwrap()
                         .last().unwrap().clone();
-                    self.board.values[i][j] = NonGiven(value);
+                    self.board.set(i, j, NonGiven(value));
                 }
             }
         }

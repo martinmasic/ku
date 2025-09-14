@@ -25,13 +25,13 @@ fn generate_candidates_matrix<T: rand::Rng>(rng: &mut T) -> [[Vec::<char>; 9]; 9
 
 fn is_valid_candidate(board: &Board, cand: char, r: usize, c: usize) -> bool {
     for i in 0..r {
-        match board.values[i][c] {
+        match board.at(i, c) {
             Given(x) | NonGiven(x) => if x == cand { return false; },
             Empty => {},
         }
     }
     for j in 0..c {
-        match board.values[r][j] {
+        match board.at(r, j) {
             Given(x) | NonGiven(x) => if x == cand { return false; },
             Empty => {},
         }
@@ -40,7 +40,7 @@ fn is_valid_candidate(board: &Board, cand: char, r: usize, c: usize) -> bool {
     let (u, l) = utilities::square_limits_from_cell(r, c);
     for i in u..(u+3) {
         for j in l..(l+3) {
-            match board.values[i][j] {
+            match board.at(i, j) {
                 Given(x) | NonGiven(x) => if x == cand { return false; },
                 Empty => {},
             }
@@ -61,13 +61,13 @@ pub fn generate_full_board<T: rand::Rng>(rng: &mut T) -> Board {
         match candidates[r][c].pop() {
             Some(cand) => {
                 if !is_valid_candidate(&board, cand, r, c) { continue; }
-                board.values[r][c] = Given(cand);
+                board.set(r, c, Given(cand));
                 pos += 1;
             },
             None => {
                 candidates[r][c] = game::LEGAL_VALUES.to_vec();
                 candidates[r][c].shuffle(rng);
-                board.values[r][c] = Empty;
+                board.set(r, c, Empty);
                 pos -= 1;
                 continue;
             }
@@ -116,11 +116,11 @@ impl Generator for NaiveGenerator {
             let mut current_givens = 81;
             for i in 0..(81-17) as usize {
                 let (r, c) = utilities::coords_from_pos(positions[i]);
-                let val = board.values[r][c];
-                board.values[r][c] = game::Cell::Empty;
+                let val = board.at(r, c);
+                board.set(r, c, game::Cell::Empty);
 
                 match naive_solver::solve(&mut board) {
-                    SolverResult::Invalid => board.values[r][c] = val,
+                    SolverResult::Invalid => board.set(r, c, val),
                     SolverResult::Valid => {
                         current_givens -= 1;
                         if current_givens == self.num_givens { break 'main_loop; }
@@ -139,11 +139,10 @@ impl Generator for NaiveGenerator {
 #[cfg(test)]
 mod naive_generator_tests {
     use super::*;
+    use crate::cli_display;
 
     #[test]
     fn test_generating_full_board() {
-        use crate::cli_display;
-
         for _ in 0..9 {
             let mut trng = rand::rng();
             let board = generate_full_board(&mut trng);

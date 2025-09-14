@@ -228,10 +228,10 @@ impl App {
         if let Some(pos) = self.position &&
             let Some(ref mut puzzle) = self.puzzle
         {
-            if let Cell::Given(_) = puzzle.values[pos.0][pos.1] {
+            if let Cell::Given(_) = puzzle.at(pos.0, pos.1) {
                 return self;
             }
-            puzzle.set_non_given(Cell::NonGiven(digit), pos);
+            puzzle.set_non_given(pos.0, pos.1, Cell::NonGiven(digit));
         }
 
         self
@@ -241,10 +241,10 @@ impl App {
         if let Some(pos) = self.position &&
             let Some(ref mut puzzle) = self.puzzle
         {
-            if let Cell::Given(_) = puzzle.values[pos.0][pos.1] {
+            if let Cell::Given(_) = puzzle.at(pos.0, pos.1) {
                 return self;
             }
-            puzzle.set_non_given(Cell::Empty, pos);
+            puzzle.set_non_given(pos.0, pos.1, Cell::Empty);
         }
 
         self
@@ -253,8 +253,8 @@ impl App {
     fn valid_solution(&mut self) -> bool {
         for r in 0..9 {
             for c in 0..9 {
-                if self.puzzle.unwrap().values[r][c]
-                    != self.solution.unwrap().values[r][c]
+                if self.puzzle.unwrap().at(r, c)
+                    != self.solution.unwrap().at(r, c)
                 {
                     return false;
                 }
