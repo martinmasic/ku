@@ -19,25 +19,17 @@ impl Index<usize> for CandidatesBoard<'_> {
     type Output = Option<Vec<Digit>>;
     fn index(&self, pos: usize) -> &Self::Output {
         if pos >= 81 { return &None; }
-        &self.candidates[pos / 9][pos % 9]
+        let (r, c) = utilities::coords_from_pos(pos);
+        &self.candidates[r][c]
     }
 }
 impl IndexMut<usize> for CandidatesBoard<'_> {
     fn index_mut(&mut self, pos: usize) -> &mut Option<Vec<Digit>> {
-        &mut self.candidates[pos / 9][pos % 9]
+        let (r, c) = utilities::coords_from_pos(pos);
+        &mut self.candidates[r][c]
     }
 }
-impl Index<(usize,usize)> for CandidatesBoard<'_> {
-    type Output = Option<Vec<Digit>>;
-    fn index(&self, xy: (usize,usize)) -> &Self::Output {
-        &self.candidates[xy.0][xy.1]
-    }
-}
-impl IndexMut<(usize,usize)> for CandidatesBoard<'_> {
-    fn index_mut(&mut self, xy: (usize,usize)) -> &mut Option<Vec<Digit>> {
-        &mut self.candidates[xy.0][xy.1]
-    }
-}
+
 impl<'a> CandidatesBoard<'a> {
     fn new(board: &'a mut Board) -> Self {
         let mut candidates: [[Option<Vec<Digit>>; 9]; 9]  = Default::default();
@@ -84,41 +76,36 @@ impl<'a> CandidatesBoard<'a> {
         }
     }
 
-    fn reset_current_candidates(&mut self) {
+    fn reset_current_cell_candidates(&mut self) {
         *self.current_cell_candidates() = Some(game::LEGAL_VALUES.into_iter().collect());
     }
 
     fn next_non_given(&mut self) {
         for i in (self.current_pos + 1)..81 {
-            let cands = &self[i];
-            if !cands.is_none() { self.current_pos = i; return; }
+            if !&self[i].is_none() { self.current_pos = i; return; }
         }
     }
     fn prev_non_given(&mut self) {
         for i in (0..self.current_pos).rev() {
-            let cands = &self[i];
-            if !cands.is_none() { self.current_pos = i; return; }
+            if !&self[i].is_none() { self.current_pos = i; return; }
         }
     }
 
-    fn is_current_candidate_valid(&self) -> bool {
-        let r = self.current_pos / 9;
-        let c = self.current_pos % 9;
+    fn current_candidate_valid(&self) -> bool {
+        let (r, c) = utilities::coords_from_pos(self.current_pos);
         let cand = self[self.current_pos].as_ref().unwrap().last().unwrap();
 
         for i in 0..r {
             match self.board.at(i, c) {
-                Cell::Given(x) | Cell::NonGiven(x) => {
-                    if x == *cand { return false; }
-                },
+                Cell::Given(x) | Cell::NonGiven(x) =>
+                    if x == *cand { return false; },
                 Cell::Empty => {},
             }
         }
         for j in 0..c {
             match self.board.at(r, j) {
-                Cell::Given(x) | Cell::NonGiven(x) => {
-                    if x == *cand { return false; }
-                },
+                Cell::Given(x) | Cell::NonGiven(x) =>
+                    if x == *cand { return false; },
                 Cell::Empty => {},
             }
         }
@@ -126,9 +113,8 @@ impl<'a> CandidatesBoard<'a> {
         for i in u..(u+3) {
             for j in l..(l+3) {
                 match self.board.at(i, j) {
-                    Cell::Given(x) | Cell::NonGiven(x) => {
-                        if x == *cand { return false; }
-                    },
+                    Cell::Given(x) | Cell::NonGiven(x) =>
+                        if x == *cand { return false; },
                     Cell::Empty => {},
                 }
             }
@@ -144,8 +130,7 @@ impl<'a> CandidatesBoard<'a> {
     pub fn generate_solution(&mut self) {
         for i in 0..9 {
             for j in 0..9 {
-                if let Cell::Empty = self.board.at(i, j)
-                {
+                if let Cell::Empty = self.board.at(i, j) {
                     let value = self.candidates[i][j]
                         .as_ref().unwrap()
                         .last().unwrap().clone();
@@ -157,40 +142,40 @@ impl<'a> CandidatesBoard<'a> {
 
 }
 
-pub enum SolverResult {
-    Invalid,
-    Valid,
-}
+pub enum SolverResult { Invalid, Valid }
 
 pub fn solve(board: &mut Board) -> SolverResult {
     let mut solutions_count: u64 = 0;
-    let mut board_candidates = CandidatesBoard::new(board);
+    let mut candidates_board = CandidatesBoard::new(board);
     // let mut solution = board.clone();
     'outer: loop {
         // current candidate is valid
-        if board_candidates.is_current_candidate_valid() {
-            if board_candidates.is_last_nongiven() {
+        if candidates_board.current_candidate_valid() {
+            if candidates_board.is_last_nongiven() {
+                // found a solution!
                 solutions_count += 1;
                 // invalid puzzle
                 if solutions_count >= 2 { return SolverResult::Invalid; }
 
                 // set solution board
-                board_candidates.generate_solution();
+                // TODO: this is not explicit enough!!
+                candidates_board.generate_solution();
 
                 // only one non-given in puzzle (trivial case), valid solution
-                if board_candidates.is_first_nongiven() {
+                if candidates_board.is_first_nongiven() {
                     return SolverResult::Valid;
                 }
 
                 // recursively reset cell candidates until
                 // first available cell candidate
                 loop {
-                    board_candidates.reset_current_candidates();
-                    board_candidates.prev_non_given();
-                    board_candidates.pop_current_candidate();
+                    // backtrack to previous cell
+                    candidates_board.reset_current_cell_candidates();
+                    candidates_board.prev_non_given();
+                    candidates_board.pop_current_candidate();
 
-                    if board_candidates.current_candidate().is_none() {
-                        if board_candidates.is_first_nongiven() {
+                    if candidates_board.current_candidate().is_none() {
+                        if candidates_board.is_first_nongiven() {
                             return SolverResult::Valid;
                         }
                     } else {
@@ -198,26 +183,31 @@ pub fn solve(board: &mut Board) -> SolverResult {
                     }
                 }
             } else {
-                board_candidates.next_non_given();
+                candidates_board.next_non_given();
             }
         }
         // current candidate is invalid
         else {
+            // backtrack to first valid candidate
             loop {
-                board_candidates.pop_current_candidate();
-                if board_candidates.curr_cell_no_candidates() {
-                    if board_candidates.is_first_nongiven() {
+                // remove invalid candidate
+                candidates_board.pop_current_candidate();
+
+                // no valid candidates for current cell
+                if candidates_board.curr_cell_no_candidates() {
+                    if candidates_board.is_first_nongiven() {
                         return match solutions_count {
                             2..   => SolverResult::Invalid,
                             0..=1 => SolverResult::Valid,
                         }
                     }
-                    // since no valid candidates in current cell,
-                    // pop previous cell's candidate
-                    board_candidates.reset_current_candidates();
-                    board_candidates.prev_non_given();
-                    board_candidates.pop_current_candidate();
+
+                    // backtrack to previous cell
+                    candidates_board.reset_current_cell_candidates();
+                    candidates_board.prev_non_given();
+                    candidates_board.pop_current_candidate();
                 } else {
+                    // valid candidates exist so continue
                     continue 'outer;
                 }
             }
