@@ -6,22 +6,15 @@
 My attempt at a general sudoku program, written in Rust.
 
 ** (tentative) Roadmap
-- [X] nix flake
-- [X] direnv
-- [X] .gitingore
-- [X] rust project structure
-- [X] rewrite of current state of C++ project in Rust
-- [X] refactor
-- [X] CLI argument parsing
-- [X] more efficient algorithm for lower numbers of givens (<= 49)
-- [X] tests
-- [X] solver
-- [X] generator
-- [X] evaluator
 - [ ] TUI interface (ratatui)
-- [-] parallelization
+  - [ ] draw board values over multiple cells
+  - [ ] enter hints/candidates
+  - [ ] highlight all values/hints if on value
+  - [ ] highlight current row/col/square
+- [ ] GUI interface
+- [ ] parallelization (?)
 - [ ] sudoku puzzle database
-- [ ] stats
+- [ ] solved puzzle stats
 - [ ] sudoku technique finder
 - [ ] technique based puzzle generator
   - [ ] technique based puzzle solver!
