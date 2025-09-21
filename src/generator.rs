@@ -2,7 +2,7 @@ use std::fmt::Debug;
 
 use crate::{
     game,
-    game::{ Board, Cell::* },
+    game::{ Board, Cell, Digit },
     utilities,
     naive_solver,
     naive_solver::*,
@@ -13,7 +13,7 @@ use rand::seq::SliceRandom;
 use crate::evaluator;
 
 
-fn generate_candidates_matrix<T: rand::Rng>(rng: &mut T) -> [[Vec::<char>; 9]; 9] {
+fn generate_candidates_matrix<T: rand::Rng>(rng: &mut T) -> [[Vec::<Digit>; 9]; 9] {
     std::array::from_fn(|_|
         std::array::from_fn(|_| {
             let mut cands = game::LEGAL_VALUES.to_vec();
@@ -23,17 +23,17 @@ fn generate_candidates_matrix<T: rand::Rng>(rng: &mut T) -> [[Vec::<char>; 9]; 9
     )
 }
 
-fn is_valid_candidate(board: &Board, cand: char, r: usize, c: usize) -> bool {
+fn is_valid_candidate(board: &Board, cand: Digit, r: usize, c: usize) -> bool {
     for i in 0..r {
         match board.at(i, c) {
-            Given(x) | NonGiven(x) => if x == cand { return false; },
-            Empty => {},
+            Cell::Given(x) | Cell::NonGiven(x) => if x == cand { return false; },
+            Cell::Empty => {},
         }
     }
     for j in 0..c {
         match board.at(r, j) {
-            Given(x) | NonGiven(x) => if x == cand { return false; },
-            Empty => {},
+            Cell::Given(x) | Cell::NonGiven(x) => if x == cand { return false; },
+            Cell::Empty => {},
         }
     }
 
@@ -41,8 +41,8 @@ fn is_valid_candidate(board: &Board, cand: char, r: usize, c: usize) -> bool {
     for i in u..(u+3) {
         for j in l..(l+3) {
             match board.at(i, j) {
-                Given(x) | NonGiven(x) => if x == cand { return false; },
-                Empty => {},
+                Cell::Given(x) | Cell::NonGiven(x) => if x == cand { return false; },
+                Cell::Empty => {},
             }
         }
     }
@@ -61,13 +61,13 @@ pub fn generate_full_board<T: rand::Rng>(rng: &mut T) -> Board {
         match candidates[r][c].pop() {
             Some(cand) => {
                 if !is_valid_candidate(&board, cand, r, c) { continue; }
-                board.set(r, c, Given(cand));
+                board.set(r, c, Cell::Given(cand));
                 pos += 1;
             },
             None => {
                 candidates[r][c] = game::LEGAL_VALUES.to_vec();
                 candidates[r][c].shuffle(rng);
-                board.set(r, c, Empty);
+                board.set(r, c, Cell::Empty);
                 pos -= 1;
                 continue;
             }
@@ -157,7 +157,6 @@ mod naive_generator_tests {
     #[test]
     fn test_generating_puzzle() {
         for num_givens in 17..=80 {
-            let mut trng = rand::rng();
             let generator = NaiveGenerator::new(num_givens);
 
             let board = generator.generate_puzzle();

@@ -1,11 +1,31 @@
+use std::fmt;
 
 
-pub const LEGAL_VALUES: [char; 9] = ['1', '2', '3', '4', '5', '6', '7', '8', '9'];
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Hash)]
+pub enum Digit { D1, D2, D3, D4, D5, D6, D7, D8, D9 }
+
+pub const LEGAL_VALUES: [Digit; 9] = [ Digit::D1, Digit::D2, Digit::D3, Digit::D4, Digit::D5, Digit::D6, Digit::D7, Digit::D8, Digit::D9 ];
+
+impl fmt::Display for Digit {
+   fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+       match self {
+           Digit::D1 => write!(f, "1"),
+           Digit::D2 => write!(f, "2"),
+           Digit::D3 => write!(f, "3"),
+           Digit::D4 => write!(f, "4"),
+           Digit::D5 => write!(f, "5"),
+           Digit::D6 => write!(f, "6"),
+           Digit::D7 => write!(f, "7"),
+           Digit::D8 => write!(f, "8"),
+           Digit::D9 => write!(f, "9"),
+       }
+   }
+}
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum Cell {
-    Given(char),
-    NonGiven(char),
+    Given(Digit),
+    NonGiven(Digit),
     Empty
 }
 

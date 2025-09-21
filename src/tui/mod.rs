@@ -225,6 +225,19 @@ impl App {
     }
 
     fn enter_digit(&mut self, digit: char) -> &Self {
+        let digit = match digit {
+            '1' => Digit::D1,
+            '2' => Digit::D2,
+            '3' => Digit::D3,
+            '4' => Digit::D4,
+            '5' => Digit::D5,
+            '6' => Digit::D6,
+            '7' => Digit::D7,
+            '8' => Digit::D8,
+            '9' => Digit::D9,
+            _   => panic!()
+        };
+
         if let Some(pos) = self.position &&
             let Some(ref mut puzzle) = self.puzzle
         {

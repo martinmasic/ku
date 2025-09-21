@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use crate::{game::{ Board, Cell }, utilities, evaluator};
+use crate::{game::{ Board, Cell, Digit::{*} }, utilities};
 
 pub fn evaluate(board: &Board) -> bool {
     // evaluating every row
@@ -8,10 +8,10 @@ pub fn evaluate(board: &Board) -> bool {
         let mut set = HashSet::new();
         for j in 0..9 {
             match board.at(i, j) {
-                Cell::Given(x) => if !('0'..='9').contains(&x) || !set.insert(x) {
+                Cell::Given(x) => if !set.insert(x) {
                     return false;
                 },
-                Cell::NonGiven(x) => if !('0'..='9').contains(&x) || !set.insert(x) {
+                Cell::NonGiven(x) => if !set.insert(x) {
                     return false;
                 },
                 Cell::Empty => { return false; },
@@ -25,10 +25,10 @@ pub fn evaluate(board: &Board) -> bool {
         let mut set = HashSet::new();
         for i in 0..9 {
             match board.at(i, j) {
-                Cell::Given(x) => if !('0'..='9').contains(&x) || !set.insert(x) {
+                Cell::Given(x) => if !set.insert(x) {
                     return false;
                 },
-                Cell::NonGiven(x) => if !('0'..='9').contains(&x) || !set.insert(x) {
+                Cell::NonGiven(x) => if !set.insert(x) {
                     return false;
                 },
                 Cell::Empty => { return false; },
@@ -44,10 +44,10 @@ pub fn evaluate(board: &Board) -> bool {
         for i in u..=(u+2) {
             for j in l..=(l+2) {
                 match board.at(i, j) {
-                    Cell::Given(x) => if !('0'..='9').contains(&x) || !set.insert(x) {
+                    Cell::Given(x) => if !set.insert(x) {
                         return false;
                     },
-                    Cell::NonGiven(x) => if !('0'..='9').contains(&x) || !set.insert(x) {
+                    Cell::NonGiven(x) => if !set.insert(x) {
                         return false;
                     },
                     Cell::Empty => { return false; },
@@ -68,15 +68,15 @@ mod evaluator_tests {
     #[test]
     fn test_evaluating_valid_board1() {
         let board = Board::new([
-            [Cell::Given('1'), Cell::Given('2'), Cell::Given('3'), Cell::Given('4'), Cell::Given('5'), Cell::Given('6'), Cell::Given('7'), Cell::Given('8'), Cell::Given('9')],
-            [Cell::Given('4'), Cell::Given('5'), Cell::Given('6'), Cell::Given('7'), Cell::Given('8'), Cell::Given('9'), Cell::Given('1'), Cell::Given('2'), Cell::Given('3')],
-            [Cell::Given('7'), Cell::Given('8'), Cell::Given('9'), Cell::Given('1'), Cell::Given('2'), Cell::Given('3'), Cell::Given('4'), Cell::Given('5'), Cell::Given('6')],
-            [Cell::Given('2'), Cell::Given('3'), Cell::Given('4'), Cell::Given('5'), Cell::Given('6'), Cell::Given('7'), Cell::Given('8'), Cell::Given('9'), Cell::Given('1')],
-            [Cell::Given('5'), Cell::Given('6'), Cell::Given('7'), Cell::Given('8'), Cell::Given('9'), Cell::Given('1'), Cell::Given('2'), Cell::Given('3'), Cell::Given('4')],
-            [Cell::Given('8'), Cell::Given('9'), Cell::Given('1'), Cell::Given('2'), Cell::Given('3'), Cell::Given('4'), Cell::Given('5'), Cell::Given('6'), Cell::Given('7')],
-            [Cell::Given('3'), Cell::Given('4'), Cell::Given('5'), Cell::Given('6'), Cell::Given('7'), Cell::Given('8'), Cell::Given('9'), Cell::Given('1'), Cell::Given('2')],
-            [Cell::Given('6'), Cell::Given('7'), Cell::Given('8'), Cell::Given('9'), Cell::Given('1'), Cell::Given('2'), Cell::Given('3'), Cell::Given('4'), Cell::Given('5')],
-            [Cell::Given('9'), Cell::Given('1'), Cell::Given('2'), Cell::Given('3'), Cell::Given('4'), Cell::Given('5'), Cell::Given('6'), Cell::Given('7'), Cell::Given('8')],
+            [Cell::Given(D1), Cell::Given(D2), Cell::Given(D3), Cell::Given(D4), Cell::Given(D5), Cell::Given(D6), Cell::Given(D7), Cell::Given(D8), Cell::Given(D9)],
+            [Cell::Given(D4), Cell::Given(D5), Cell::Given(D6), Cell::Given(D7), Cell::Given(D8), Cell::Given(D9), Cell::Given(D1), Cell::Given(D2), Cell::Given(D3)],
+            [Cell::Given(D7), Cell::Given(D8), Cell::Given(D9), Cell::Given(D1), Cell::Given(D2), Cell::Given(D3), Cell::Given(D4), Cell::Given(D5), Cell::Given(D6)],
+            [Cell::Given(D2), Cell::Given(D3), Cell::Given(D4), Cell::Given(D5), Cell::Given(D6), Cell::Given(D7), Cell::Given(D8), Cell::Given(D9), Cell::Given(D1)],
+            [Cell::Given(D5), Cell::Given(D6), Cell::Given(D7), Cell::Given(D8), Cell::Given(D9), Cell::Given(D1), Cell::Given(D2), Cell::Given(D3), Cell::Given(D4)],
+            [Cell::Given(D8), Cell::Given(D9), Cell::Given(D1), Cell::Given(D2), Cell::Given(D3), Cell::Given(D4), Cell::Given(D5), Cell::Given(D6), Cell::Given(D7)],
+            [Cell::Given(D3), Cell::Given(D4), Cell::Given(D5), Cell::Given(D6), Cell::Given(D7), Cell::Given(D8), Cell::Given(D9), Cell::Given(D1), Cell::Given(D2)],
+            [Cell::Given(D6), Cell::Given(D7), Cell::Given(D8), Cell::Given(D9), Cell::Given(D1), Cell::Given(D2), Cell::Given(D3), Cell::Given(D4), Cell::Given(D5)],
+            [Cell::Given(D9), Cell::Given(D1), Cell::Given(D2), Cell::Given(D3), Cell::Given(D4), Cell::Given(D5), Cell::Given(D6), Cell::Given(D7), Cell::Given(D8)],
         ]);
         let valid = evaluate(&board);
         if !valid { cli_display::print_board(&board); }
@@ -86,15 +86,15 @@ mod evaluator_tests {
     #[test]
     fn test_evaluating_valid_board2() {
         let board = Board::new([
-            [Cell::NonGiven('1'), Cell::Given('2'), Cell::Given('3'), Cell::Given('4'), Cell::Given('5'), Cell::Given('6'), Cell::Given('7'), Cell::Given('8'), Cell::Given('9')],
-            [Cell::Given('4'), Cell::NonGiven('5'), Cell::Given('6'), Cell::Given('7'), Cell::Given('8'), Cell::Given('9'), Cell::Given('1'), Cell::Given('2'), Cell::Given('3')],
-            [Cell::Given('7'), Cell::Given('8'), Cell::NonGiven('9'), Cell::Given('1'), Cell::Given('2'), Cell::Given('3'), Cell::Given('4'), Cell::Given('5'), Cell::Given('6')],
-            [Cell::Given('2'), Cell::Given('3'), Cell::Given('4'), Cell::NonGiven('5'), Cell::NonGiven('6'), Cell::Given('7'), Cell::Given('8'), Cell::Given('9'), Cell::Given('1')],
-            [Cell::Given('5'), Cell::Given('6'), Cell::Given('7'), Cell::Given('8'), Cell::Given('9'), Cell::Given('1'), Cell::Given('2'), Cell::Given('3'), Cell::Given('4')],
-            [Cell::Given('8'), Cell::Given('9'), Cell::Given('1'), Cell::Given('2'), Cell::Given('3'), Cell::Given('4'), Cell::Given('5'), Cell::Given('6'), Cell::Given('7')],
-            [Cell::Given('3'), Cell::Given('4'), Cell::Given('5'), Cell::Given('6'), Cell::Given('7'), Cell::Given('8'), Cell::Given('9'), Cell::Given('1'), Cell::Given('2')],
-            [Cell::Given('6'), Cell::Given('7'), Cell::Given('8'), Cell::Given('9'), Cell::Given('1'), Cell::Given('2'), Cell::Given('3'), Cell::Given('4'), Cell::Given('5')],
-            [Cell::Given('9'), Cell::Given('1'), Cell::Given('2'), Cell::Given('3'), Cell::Given('4'), Cell::Given('5'), Cell::Given('6'), Cell::Given('7'), Cell::Given('8')],
+            [Cell::NonGiven(D1), Cell::Given(D2), Cell::Given(D3), Cell::Given(D4), Cell::Given(D5), Cell::Given(D6), Cell::Given(D7), Cell::Given(D8), Cell::Given(D9)],
+            [Cell::Given(D4), Cell::NonGiven(D5), Cell::Given(D6), Cell::Given(D7), Cell::Given(D8), Cell::Given(D9), Cell::Given(D1), Cell::Given(D2), Cell::Given(D3)],
+            [Cell::Given(D7), Cell::Given(D8), Cell::NonGiven(D9), Cell::Given(D1), Cell::Given(D2), Cell::Given(D3), Cell::Given(D4), Cell::Given(D5), Cell::Given(D6)],
+            [Cell::Given(D2), Cell::Given(D3), Cell::Given(D4), Cell::NonGiven(D5), Cell::NonGiven(D6), Cell::Given(D7), Cell::Given(D8), Cell::Given(D9), Cell::Given(D1)],
+            [Cell::Given(D5), Cell::Given(D6), Cell::Given(D7), Cell::Given(D8), Cell::Given(D9), Cell::Given(D1), Cell::Given(D2), Cell::Given(D3), Cell::Given(D4)],
+            [Cell::Given(D8), Cell::Given(D9), Cell::Given(D1), Cell::Given(D2), Cell::Given(D3), Cell::Given(D4), Cell::Given(D5), Cell::Given(D6), Cell::Given(D7)],
+            [Cell::Given(D3), Cell::Given(D4), Cell::Given(D5), Cell::Given(D6), Cell::Given(D7), Cell::Given(D8), Cell::Given(D9), Cell::Given(D1), Cell::Given(D2)],
+            [Cell::Given(D6), Cell::Given(D7), Cell::Given(D8), Cell::Given(D9), Cell::Given(D1), Cell::Given(D2), Cell::Given(D3), Cell::Given(D4), Cell::Given(D5)],
+            [Cell::Given(D9), Cell::Given(D1), Cell::Given(D2), Cell::Given(D3), Cell::Given(D4), Cell::Given(D5), Cell::Given(D6), Cell::Given(D7), Cell::Given(D8)],
         ]);
         let valid = evaluate(&board);
         if !valid { cli_display::print_board(&board); }
@@ -105,15 +105,15 @@ mod evaluator_tests {
     #[test]
     fn test_evaluating_valid_board3() {
         let board = Board::new([
-            [Cell::Given('8'), Cell::Given('7'), Cell::Given('2'), Cell::Given('4'), Cell::Given('1'), Cell::Given('5'), Cell::Given('3'), Cell::Given('6'), Cell::Given('9')],
-            [Cell::Given('6'), Cell::Given('9'), Cell::Given('1'), Cell::Given('7'), Cell::Given('8'), Cell::Given('3'), Cell::Given('5'), Cell::Given('4'), Cell::Given('2')],
-            [Cell::Given('4'), Cell::Given('3'), Cell::Given('5'), Cell::Given('9'), Cell::Given('2'), Cell::Given('6'), Cell::Given('7'), Cell::Given('8'), Cell::Given('1')],
-            [Cell::Given('7'), Cell::Given('6'), Cell::Given('3'), Cell::Given('2'), Cell::Given('5'), Cell::Given('8'), Cell::Given('1'), Cell::Given('9'), Cell::Given('4')],
-            [Cell::Given('2'), Cell::Given('5'), Cell::Given('8'), Cell::Given('1'), Cell::Given('9'), Cell::Given('4'), Cell::Given('6'), Cell::Given('3'), Cell::Given('7')],
-            [Cell::Given('1'), Cell::Given('4'), Cell::Given('9'), Cell::Given('6'), Cell::Given('3'), Cell::Given('7'), Cell::Given('2'), Cell::Given('5'), Cell::Given('8')],
-            [Cell::Given('3'), Cell::Given('8'), Cell::Given('7'), Cell::Given('5'), Cell::Given('4'), Cell::Given('2'), Cell::Given('9'), Cell::Given('1'), Cell::Given('6')],
-            [Cell::Given('5'), Cell::Given('1'), Cell::Given('6'), Cell::Given('8'), Cell::Given('7'), Cell::Given('9'), Cell::Given('4'), Cell::Given('2'), Cell::Given('3')],
-            [Cell::Given('9'), Cell::Given('2'), Cell::Given('4'), Cell::Given('3'), Cell::Given('6'), Cell::Given('1'), Cell::Given('8'), Cell::Given('7'), Cell::Given('5')],
+            [Cell::Given(D8), Cell::Given(D7), Cell::Given(D2), Cell::Given(D4), Cell::Given(D1), Cell::Given(D5), Cell::Given(D3), Cell::Given(D6), Cell::Given(D9)],
+            [Cell::Given(D6), Cell::Given(D9), Cell::Given(D1), Cell::Given(D7), Cell::Given(D8), Cell::Given(D3), Cell::Given(D5), Cell::Given(D4), Cell::Given(D2)],
+            [Cell::Given(D4), Cell::Given(D3), Cell::Given(D5), Cell::Given(D9), Cell::Given(D2), Cell::Given(D6), Cell::Given(D7), Cell::Given(D8), Cell::Given(D1)],
+            [Cell::Given(D7), Cell::Given(D6), Cell::Given(D3), Cell::Given(D2), Cell::Given(D5), Cell::Given(D8), Cell::Given(D1), Cell::Given(D9), Cell::Given(D4)],
+            [Cell::Given(D2), Cell::Given(D5), Cell::Given(D8), Cell::Given(D1), Cell::Given(D9), Cell::Given(D4), Cell::Given(D6), Cell::Given(D3), Cell::Given(D7)],
+            [Cell::Given(D1), Cell::Given(D4), Cell::Given(D9), Cell::Given(D6), Cell::Given(D3), Cell::Given(D7), Cell::Given(D2), Cell::Given(D5), Cell::Given(D8)],
+            [Cell::Given(D3), Cell::Given(D8), Cell::Given(D7), Cell::Given(D5), Cell::Given(D4), Cell::Given(D2), Cell::Given(D9), Cell::Given(D1), Cell::Given(D6)],
+            [Cell::Given(D5), Cell::Given(D1), Cell::Given(D6), Cell::Given(D8), Cell::Given(D7), Cell::Given(D9), Cell::Given(D4), Cell::Given(D2), Cell::Given(D3)],
+            [Cell::Given(D9), Cell::Given(D2), Cell::Given(D4), Cell::Given(D3), Cell::Given(D6), Cell::Given(D1), Cell::Given(D8), Cell::Given(D7), Cell::Given(D5)],
         ]);
         let valid = evaluate(&board);
         if !valid { cli_display::print_board(&board); }
@@ -123,15 +123,15 @@ mod evaluator_tests {
     #[test]
     fn test_evaluating_invalid_board1() {
         let board = Board::new([
-            [Cell::Given('1'), Cell::Given('7'), Cell::Given('2'), Cell::Given('4'), Cell::Given('1'), Cell::Given('5'), Cell::Given('3'), Cell::Given('6'), Cell::Given('9')],
-            [Cell::Given('6'), Cell::NonGiven('9'), Cell::Given('1'), Cell::Given('7'), Cell::Given('8'), Cell::Given('3'), Cell::Given('5'), Cell::Given('4'), Cell::Given('2')],
-            [Cell::Given('4'), Cell::Given('3'), Cell::Given('5'), Cell::Given('9'), Cell::Given('2'), Cell::Given('6'), Cell::Given('7'), Cell::Given('8'), Cell::Given('1')],
-            [Cell::Given('7'), Cell::Given('6'), Cell::Given('3'), Cell::Given('2'), Cell::Given('5'), Cell::Given('8'), Cell::Given('1'), Cell::Given('9'), Cell::Given('4')],
-            [Cell::Given('2'), Cell::Given('5'), Cell::Given('8'), Cell::Given('1'), Cell::Given('9'), Cell::Given('4'), Cell::Given('6'), Cell::Given('3'), Cell::Given('7')],
-            [Cell::Given('1'), Cell::Given('4'), Cell::NonGiven('9'), Cell::Given('6'), Cell::Given('3'), Cell::Given('7'), Cell::Given('2'), Cell::Given('5'), Cell::Given('8')],
-            [Cell::Given('3'), Cell::Given('8'), Cell::Given('7'), Cell::Given('5'), Cell::Given('4'), Cell::Given('2'), Cell::Given('9'), Cell::Given('1'), Cell::Given('6')],
-            [Cell::Given('5'), Cell::Given('1'), Cell::Given('6'), Cell::Given('8'), Cell::Given('7'), Cell::Given('9'), Cell::Given('4'), Cell::Given('2'), Cell::Given('3')],
-            [Cell::Given('9'), Cell::Given('2'), Cell::Given('4'), Cell::Given('3'), Cell::Given('6'), Cell::Given('1'), Cell::Given('8'), Cell::Given('7'), Cell::Given('5')],
+            [Cell::Given(D1), Cell::Given(D7), Cell::Given(D2), Cell::Given(D4), Cell::Given(D1), Cell::Given(D5), Cell::Given(D3), Cell::Given(D6), Cell::Given(D9)],
+            [Cell::Given(D6), Cell::NonGiven(D9), Cell::Given(D1), Cell::Given(D7), Cell::Given(D8), Cell::Given(D3), Cell::Given(D5), Cell::Given(D4), Cell::Given(D2)],
+            [Cell::Given(D4), Cell::Given(D3), Cell::Given(D5), Cell::Given(D9), Cell::Given(D2), Cell::Given(D6), Cell::Given(D7), Cell::Given(D8), Cell::Given(D1)],
+            [Cell::Given(D7), Cell::Given(D6), Cell::Given(D3), Cell::Given(D2), Cell::Given(D5), Cell::Given(D8), Cell::Given(D1), Cell::Given(D9), Cell::Given(D4)],
+            [Cell::Given(D2), Cell::Given(D5), Cell::Given(D8), Cell::Given(D1), Cell::Given(D9), Cell::Given(D4), Cell::Given(D6), Cell::Given(D3), Cell::Given(D7)],
+            [Cell::Given(D1), Cell::Given(D4), Cell::NonGiven(D9), Cell::Given(D6), Cell::Given(D3), Cell::Given(D7), Cell::Given(D2), Cell::Given(D5), Cell::Given(D8)],
+            [Cell::Given(D3), Cell::Given(D8), Cell::Given(D7), Cell::Given(D5), Cell::Given(D4), Cell::Given(D2), Cell::Given(D9), Cell::Given(D1), Cell::Given(D6)],
+            [Cell::Given(D5), Cell::Given(D1), Cell::Given(D6), Cell::Given(D8), Cell::Given(D7), Cell::Given(D9), Cell::Given(D4), Cell::Given(D2), Cell::Given(D3)],
+            [Cell::Given(D9), Cell::Given(D2), Cell::Given(D4), Cell::Given(D3), Cell::Given(D6), Cell::Given(D1), Cell::Given(D8), Cell::Given(D7), Cell::Given(D5)],
         ]);
         let valid = evaluate(&board);
         if valid { cli_display::print_board(&board); }
@@ -141,20 +141,19 @@ mod evaluator_tests {
     #[test]
     fn test_evaluating_invalid_board2() {
         let board = Board::new([
-            [Cell::Empty, Cell::Given('7'), Cell::Given('2'), Cell::Given('4'), Cell::Given('1'), Cell::Given('5'), Cell::Given('3'), Cell::Given('6'), Cell::Given('9')],
-            [Cell::Given('6'), Cell::Given('9'), Cell::Given('1'), Cell::Given('7'), Cell::Given('8'), Cell::Given('3'), Cell::Given('5'), Cell::Given('4'), Cell::Given('2')],
-            [Cell::Given('4'), Cell::Given('3'), Cell::Given('5'), Cell::Given('9'), Cell::Given('2'), Cell::Given('6'), Cell::Given('7'), Cell::Given('8'), Cell::Given('1')],
-            [Cell::Given('7'), Cell::Given('6'), Cell::Given('3'), Cell::Given('2'), Cell::Given('5'), Cell::Given('8'), Cell::Given('1'), Cell::Given('9'), Cell::Given('4')],
-            [Cell::Given('2'), Cell::Given('5'), Cell::Given('8'), Cell::Given('1'), Cell::Given('9'), Cell::Given('4'), Cell::Given('6'), Cell::Given('3'), Cell::Given('7')],
-            [Cell::Given('1'), Cell::Given('4'), Cell::NonGiven('9'), Cell::Given('6'), Cell::Given('3'), Cell::Given('7'), Cell::Given('2'), Cell::Given('5'), Cell::Given('8')],
-            [Cell::Given('3'), Cell::Given('8'), Cell::Given('7'), Cell::Given('5'), Cell::Given('4'), Cell::Given('2'), Cell::Given('9'), Cell::Given('1'), Cell::Given('6')],
-            [Cell::Given('5'), Cell::Empty, Cell::Given('6'), Cell::Given('8'), Cell::Given('7'), Cell::Given('9'), Cell::Given('0'), Cell::Given('2'), Cell::Given('3')],
-            [Cell::Given('9'), Cell::Given('2'), Cell::Given('4'), Cell::Given('3'), Cell::Given('6'), Cell::Given('1'), Cell::Given('8'), Cell::Given('7'), Cell::Given('a')],
+            [Cell::Empty, Cell::Given(D7), Cell::Given(D2), Cell::Given(D4), Cell::Given(D1), Cell::Given(D5), Cell::Given(D3), Cell::Given(D6), Cell::Given(D9)],
+            [Cell::Given(D6), Cell::Given(D9), Cell::Given(D1), Cell::Given(D7), Cell::Given(D8), Cell::Given(D3), Cell::Given(D5), Cell::Given(D4), Cell::Given(D2)],
+            [Cell::Given(D4), Cell::Given(D3), Cell::Given(D5), Cell::Given(D9), Cell::Given(D2), Cell::Given(D6), Cell::Given(D7), Cell::Given(D8), Cell::Given(D1)],
+            [Cell::Given(D7), Cell::Given(D6), Cell::Given(D3), Cell::Given(D2), Cell::Given(D5), Cell::Given(D8), Cell::Given(D1), Cell::Given(D9), Cell::Given(D4)],
+            [Cell::Given(D2), Cell::Given(D5), Cell::Given(D8), Cell::Given(D1), Cell::Given(D9), Cell::Given(D4), Cell::Given(D6), Cell::Given(D3), Cell::Given(D7)],
+            [Cell::Given(D1), Cell::Given(D4), Cell::NonGiven(D9), Cell::Given(D6), Cell::Given(D3), Cell::Given(D7), Cell::Given(D2), Cell::Given(D5), Cell::Given(D8)],
+            [Cell::Given(D3), Cell::Given(D8), Cell::Given(D7), Cell::Given(D5), Cell::Given(D4), Cell::Given(D2), Cell::Given(D9), Cell::Given(D1), Cell::Given(D6)],
+            [Cell::Given(D5), Cell::Empty, Cell::Given(D6), Cell::Given(D8), Cell::Given(D7), Cell::Given(D9), Cell::Given(D1), Cell::Given(D2), Cell::Given(D3)],
+            [Cell::Given(D9), Cell::Given(D2), Cell::Given(D4), Cell::Given(D3), Cell::Given(D6), Cell::Given(D1), Cell::Given(D8), Cell::Given(D7), Cell::Given(D5)],
         ]);
         let valid = evaluate(&board);
         if valid { cli_display::print_board(&board); }
         assert!(!valid);
     }
-
 
 }

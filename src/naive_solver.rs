@@ -1,6 +1,6 @@
 use crate::{
     game,
-    game::{ Board, Cell::{ * } },
+    game::{ Board, Cell, Digit },
     utilities,
 };
 
@@ -9,47 +9,47 @@ use std::ops::IndexMut;
 
 struct CandidatesBoard<'a> {
     board: &'a mut Board,
-    candidates: [[Option<Vec<char>>;9];9],
+    candidates: [[Option<Vec<Digit>>;9];9],
     first_pos: usize,
     last_pos: usize,
     current_pos: usize
 }
 
 impl Index<usize> for CandidatesBoard<'_> {
-    type Output = Option<Vec<char>>;
+    type Output = Option<Vec<Digit>>;
     fn index(&self, pos: usize) -> &Self::Output {
         if pos >= 81 { return &None; }
         &self.candidates[pos / 9][pos % 9]
     }
 }
 impl IndexMut<usize> for CandidatesBoard<'_> {
-    fn index_mut(&mut self, pos: usize) -> &mut Option<Vec<char>> {
+    fn index_mut(&mut self, pos: usize) -> &mut Option<Vec<Digit>> {
         &mut self.candidates[pos / 9][pos % 9]
     }
 }
 impl Index<(usize,usize)> for CandidatesBoard<'_> {
-    type Output = Option<Vec<char>>;
+    type Output = Option<Vec<Digit>>;
     fn index(&self, xy: (usize,usize)) -> &Self::Output {
         &self.candidates[xy.0][xy.1]
     }
 }
 impl IndexMut<(usize,usize)> for CandidatesBoard<'_> {
-    fn index_mut(&mut self, xy: (usize,usize)) -> &mut Option<Vec<char>> {
+    fn index_mut(&mut self, xy: (usize,usize)) -> &mut Option<Vec<Digit>> {
         &mut self.candidates[xy.0][xy.1]
     }
 }
 impl<'a> CandidatesBoard<'a> {
     fn new(board: &'a mut Board) -> Self {
-        let mut candidates: [[Option<Vec<char>>; 9]; 9]  = Default::default();
+        let mut candidates: [[Option<Vec<Digit>>; 9]; 9]  = Default::default();
         let mut first_non_given = None; let mut last_non_given = 0;
         for i in 0..9 {
             for j in 0..9 {
-                if first_non_given.is_none() && let game::Cell::Empty = board.at(i, j) {
+                if first_non_given.is_none() && let Cell::Empty = board.at(i, j) {
                     first_non_given = Some(i * 9 + j);
                 }
-                if let game::Cell::Empty = board.at(i, j) {
+                if let Cell::Empty = board.at(i, j) {
                     last_non_given = i * 9 + j;
-                    candidates[i][j] = Some(('1'..='9').into_iter().collect());
+                    candidates[i][j] = Some(game::LEGAL_VALUES.into_iter().collect());
                 }
             }
         }
@@ -65,7 +65,7 @@ impl<'a> CandidatesBoard<'a> {
     fn is_first_nongiven(&self) -> bool { self.current_pos == self.first_pos }
     fn is_last_nongiven(&self) -> bool { self.current_pos == self.last_pos }
 
-    fn current_cell_candidates(&mut self) -> &mut Option<Vec<char>> {
+    fn current_cell_candidates(&mut self) -> &mut Option<Vec<Digit>> {
         let pos = self.current_pos;
         &mut self[pos]
     }
@@ -76,7 +76,7 @@ impl<'a> CandidatesBoard<'a> {
         }
     }
 
-    fn current_candidate(&mut self) -> Option<char> {
+    fn current_candidate(&mut self) -> Option<Digit> {
         if let Some(cands) = self.current_cell_candidates().as_ref() {
             cands.last().cloned()
         } else {
@@ -85,7 +85,7 @@ impl<'a> CandidatesBoard<'a> {
     }
 
     fn reset_current_candidates(&mut self) {
-        *self.current_cell_candidates() = Some(('1'..='9').into_iter().collect());
+        *self.current_cell_candidates() = Some(game::LEGAL_VALUES.into_iter().collect());
     }
 
     fn next_non_given(&mut self) {
@@ -108,28 +108,28 @@ impl<'a> CandidatesBoard<'a> {
 
         for i in 0..r {
             match self.board.at(i, c) {
-                Given(x) | NonGiven(x) => {
+                Cell::Given(x) | Cell::NonGiven(x) => {
                     if x == *cand { return false; }
                 },
-                Empty => {},
+                Cell::Empty => {},
             }
         }
         for j in 0..c {
             match self.board.at(r, j) {
-                Given(x) | NonGiven(x) => {
+                Cell::Given(x) | Cell::NonGiven(x) => {
                     if x == *cand { return false; }
                 },
-                Empty => {},
+                Cell::Empty => {},
             }
         }
         let (u, l) = utilities::square_limits_from_cell(r, c);
         for i in u..(u+3) {
             for j in l..(l+3) {
                 match self.board.at(i, j) {
-                    Given(x) | NonGiven(x) => {
+                    Cell::Given(x) | Cell::NonGiven(x) => {
                         if x == *cand { return false; }
                     },
-                    Empty => {},
+                    Cell::Empty => {},
                 }
             }
         }
@@ -144,12 +144,12 @@ impl<'a> CandidatesBoard<'a> {
     pub fn generate_solution(&mut self) {
         for i in 0..9 {
             for j in 0..9 {
-                if let Empty = self.board.at(i, j)
+                if let Cell::Empty = self.board.at(i, j)
                 {
                     let value = self.candidates[i][j]
                         .as_ref().unwrap()
                         .last().unwrap().clone();
-                    self.board.set(i, j, NonGiven(value));
+                    self.board.set(i, j, Cell::NonGiven(value));
                 }
             }
         }
@@ -191,7 +191,6 @@ pub fn solve(board: &mut Board) -> SolverResult {
 
                     if board_candidates.current_candidate().is_none() {
                         if board_candidates.is_first_nongiven() {
-                            eprintln!("prvi blok");
                             return SolverResult::Valid;
                         }
                     } else {
